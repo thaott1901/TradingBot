@@ -20,6 +20,9 @@ def rsi_ma_strategy(data, short_window=10, long_window=50, rsi_period=14):
     data["short_ma"] = data["close"].rolling(window=short_window).mean()
     data["long_ma"] = data["close"].rolling(window=long_window).mean()
 
+    data["short_ma"] = data["short_ma"].bfill()
+    data["long_ma"] = data["long_ma"].bfill()
+
     # Calculate RSI
     data["rsi"] = ta.momentum.RSIIndicator(data["close"], window=rsi_period).rsi()
 
@@ -29,10 +32,20 @@ def rsi_ma_strategy(data, short_window=10, long_window=50, rsi_period=14):
         if i == 0:
             continue  # Skip first row
 
-        if data["short_ma"].iloc[i] > data["long_ma"].iloc[i] and data["rsi"].iloc[i] < 30:
-            data.at[data.index[i], "signal"] = 1  # Buy
-        elif data["short_ma"].iloc[i] < data["long_ma"].iloc[i] and data["rsi"].iloc[i] > 70:
-            data.at[data.index[i], "signal"] = -1  # Sell
+        short_ma = data["short_ma"].iloc[i]
+        long_ma = data["long_ma"].iloc[i]
+        rsi = data["rsi"].iloc[i]
+
+        print(f"🔍 Checking {data.index[i]}: short_ma={short_ma:.2f}, long_ma={long_ma:.2f}, RSI={rsi:.2f}")
+
+        if short_ma > long_ma and rsi < 40:
+            print(f"✅ BUY SIGNAL TRIGGERED on {data.index[i]}")
+            data.at[data.index[i], "signal"] = 1  # Buy signal
+
+        elif short_ma < long_ma and rsi > 60:
+            print(f"❌ SELL SIGNAL TRIGGERED on {data.index[i]}")
+            data.at[data.index[i], "signal"] = -1  # Sell signal
+
 
     # ✅ Debug: Print after processing
     print("After RSI processing:", type(data))
@@ -45,7 +58,7 @@ def rsi_ma_strategy(data, short_window=10, long_window=50, rsi_period=14):
 
 # Test the strategy
 if __name__ == "__main__":
-    stock_data = get_stock_data(symbol="NVDA", limit=150)
+    stock_data = get_stock_data(symbol="NVDA", limit=100)
     print(stock_data.head())  # ✅ Debugging: Check DataFrame columns
 
     strategy_data = rsi_ma_strategy(stock_data)

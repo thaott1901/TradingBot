@@ -9,7 +9,7 @@ api = tradeapi.REST(API_KEY, SECRET_KEY, BASE_URL, api_version="v2")
 def get_stock_data(symbol=SYMBOL, timeframe=TIMEFRAME, limit=100):
     """Fetch historical stock data."""
     end_date = datetime.now(timezone.utc)
-    start_date = end_date - timedelta(days=100)  # Fetch last xx days of data
+    start_date = end_date - timedelta(days=limit)  # Fetch last xx days of data
 
     # Convert to RFC 3339 format (YYYY-MM-DDTHH:MM:SSZ)
     start_str = start_date.strftime("%Y-%m-%dT%H:%M:%SZ")  # No microseconds
@@ -20,7 +20,7 @@ def get_stock_data(symbol=SYMBOL, timeframe=TIMEFRAME, limit=100):
         bars = api.get_bars(symbol, timeframe, start=start_str, end=end_str, limit=limit, feed="iex")
 
         # Debugging: Print raw response
-        print(f"API response: {bars}")
+        # print(f"API response: {bars}")
 
         # Check if bars are returned
         if bars:
